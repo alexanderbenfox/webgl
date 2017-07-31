@@ -6,7 +6,15 @@ var square;
 
 var perspectiveMatrix;
 //mv matrix is the drawing position
-var mvMatrix;
+var mvMatrixStack;
+
+//stuff for updating
+var lastUpdateTime = 0;
+
+//stuff for rotation
+var xIncValue = 0.01;
+var yIncValue = 0;
+var zIncValue = 0;
 
 
 function start(){
@@ -44,6 +52,10 @@ function initWebGL() {
 
 function initGameObjects(){
 	square = new VertexImage();
+	mvMatrixStack = new MatrixStack();
+
+	square.init();
+	mvMatrixStack.init();
 }
 
 function initShaders(){
@@ -69,7 +81,7 @@ function initShaders(){
 
 function initBuffers(){
 	square.verticesBuffer = gl.createBuffer();
-	square.colorBuffer = gl.createBuffer();
+	
 
 	gl.bindBuffer(gl.ARRAY_BUFFER, square.verticesBuffer);
 
@@ -88,7 +100,7 @@ function initBuffers(){
 		0.0, 1.0, 0.0, 1.0,
 		0.0, 0.0, 1.0, 1.0
 		];
-
+	square.colorBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, square.colorBuffer);
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
 
@@ -100,16 +112,62 @@ function drawScene(){
 
 	perspectiveMatrix = makePerspective(45, 640.0/480.0, 0.1, 100.0);
 
-	mvMatrix = Matrix.I(4);
+	mvMatrixStack.mvMatrix = Matrix.I(4);
 
 	mvTranslate([-0.0, 0.0, -6.0]);
 
+	//save current matrix
+	mvMatrixStack.push_matrix();
+
+	//apply movement
+	mvTranslate([square.xOffset, square.yOffset, square.zOffset]);
+	//apply rotation
+	mvMatrixStack.rotate(square.rotation, [0,0,1]);
+	
+
+
+	//bind position and color buffers
 	gl.bindBuffer(gl.ARRAY_BUFFER, square.verticesBuffer);
 	gl.vertexAttribPointer(square.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+	gl.bindBuffer(gl.ARRAY_BUFFER, square.colorBuffer);
+	gl.vertexAttribPointer(square.vertexColorAttribute, 4, gl.FLOAT, false, 0, 0);
+
+	//apply shaders and draw
 	setMatrixUniforms();
 	gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
+	//restore original matrix
+
+	mvMatrixStack.pop_matrix();
+
+	//do update loop
+
+	var currentTime = (new Date).getTime();
+	if(lastUpdateTime){
+		var deltaTime = currentTime - lastUpdateTime;
+		update(deltaTime);
+	}
+	lastUpdateTime = currentTime;
+
 	console.log("scene drawn");
+}
+
+function update(dt){
+	var normalizedUpdateValue = (30 * dt) / 1000.0;
+
+	var rotation = square.rotation + normalizedUpdateValue;
+	var x = square.xOffset + xIncValue * normalizedUpdateValue;
+	var y = square.yOffset + yIncValue * normalizedUpdateValue;
+	var z = square.zOffset + zIncValue * normalizedUpdateValue;
+
+	square.setRotation(rotation, x, y, z);
+
+	if(Math.abs(y) > 2.5){
+		xIncValue*=-1;
+		yIncValue*=-1;
+		zIncValue*=-1;
+	}
+
 }
 
 function setMatrixUniforms() {
@@ -117,11 +175,11 @@ function setMatrixUniforms() {
 	gl.uniformMatrix4fv(pUniform, false, new Float32Array(perspectiveMatrix.flatten()));
 
 	var mvUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
-	gl.uniformMatrix4fv(mvUniform, false, new Float32Array(mvMatrix.flatten()));
+	gl.uniformMatrix4fv(mvUniform, false, new Float32Array(mvMatrixStack.mvMatrix.flatten()));
 }
 
 function multMatrix(m) {
-  mvMatrix = mvMatrix.x(m);
+  mvMatrixStack.mvMatrix = mvMatrixStack.mvMatrix.x(m);
 }
 
 function mvTranslate(v) {
