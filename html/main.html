@@ -4,25 +4,29 @@
 		<title>WebGL 2D Engine</title>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 		<link rel="stylesheet" href="../css/main.css" type="text/css">
+		<script src = "../js/web-gl.js" type="text/javascript"></script>
 		<script src = "../js/verteximage.js" type="text/javascript"></script>
+		<script src = "../js/sprite.js" type="text/javascript"></script>
+		
 		<script src = "../js/sylvester.js" type="text/javascript"></script>
 		<script src = "../js/cameraUtility.js" type="text/javascript"></script>
 		<script src = "../js/matrixUtility.js" type="text/javascript"></script>
 		<script src = "../js/buffers.js" type="text/javascript"></script>
 		<script src = "../js/shaders.js" type="text/javascript"></script>
-		<script src = "../js/main.js" type="text/javascript"></script>
+		<script src = "../js/new-main.js" type="text/javascript"></script>
 
 		<!-- Fragment Shader Program -->
 
 		<script id = "shader-fs" type="x-shader/x-fragment">
 			//varying lowp vec4 vColor;
-			varying highp vec2 vTextureCoordinate;
-			uniform sampler2D uSampler;
 			precision mediump float;
+			varying vec2 vTextureCoordinate;
+			uniform sampler2D uSampler;
+			
 
 			void main(void){	
 				//gl_FragColor = vColor;
-				gl_FragColor = texture2D(uSampler, vec2(vTextureCoordinate.s, vTextureCoordinate.t));
+				gl_FragColor = texture2D(uSampler, vTextureCoordinate);
 			}
 		</script>
 
@@ -31,11 +35,12 @@
 		<script id = "shader-vs" type = "x-shader/x-vertex">
 			attribute vec2 aVertexPosition;
 			attribute vec2 aTextureCoordinate;
-
+			varying vec2 vTextureCoordinate;
+			
 			uniform mat3 uMatrix;
-			uniform mat2 uResolution;
+			uniform vec2 uResolution;
 
-			varying highp vec2 vTextureCoordinate;
+			
 
 			void main(void){
 				vec2 position = (uMatrix * vec3(aVertexPosition, 1)).xy;
@@ -46,7 +51,7 @@
 		</script>
 
 	</head>
-	<body onload = "start()">
+	<body onload = "new_start()">
 		<canvas id = "glCanvas" width = "640" height = "480">
 			Your browser doesn't appear to support the <code>&lt;canvas&gt;</code> element.
 		</canvas>
