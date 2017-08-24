@@ -8,6 +8,37 @@ var gameObjects;
 
 var lastUpdateTime;
 
+var inGame;
+
+ScriptEventEnum = {
+	OnStart : 0,
+	OnPlayerTouch : 1,
+	OnDestroy : 2
+}
+
+function executeJSInContext(script, context){
+	return function() {return eval(script);}.call(context);
+}
+
+function ScriptableEvent(){
+	this.eventList = [];
+}
+
+ScriptableEvent.prototype.setNewScript = function(s, t){
+	var event = {script : s, type : t};
+	this.eventList.push(event);
+}
+
+ScriptableEvent.prototype.execute = function(eventType, object){
+	if(inGame){
+		for (var i = 0; i < this.eventList.length; i++) {
+			if(this.eventList[i].type == eventType){
+				executeJSInContext(eventList[i].script, object);
+			}
+		}
+	}
+}
+
 function GameObject(img, width, height, surf, startX, startY){
 	if(img)
 		this.sprite = new Sprite(surf, width, height, img);

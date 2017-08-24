@@ -149,3 +149,23 @@ function setMatrixUniforms() {
 	var mvUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
 	gl.uniformMatrix4fv(mvUniform, false, new Float32Array(mvMatrixStack.mvMatrix.flatten()));
 }
+
+function Line(surface, x1, x2, y1, y2, width){
+	this.surface = surface;
+	this.vertexBuffer = surface.gl.createBuffer();
+
+	this.points = [x1, x2, y1, y2];
+	this.width = width;
+}
+
+Line.prototype.blit = function(x, y){
+	var surface = this.surface;
+	var gl = this.surface.gl;
+
+	var vertexPosition = surface.locations.position;
+	var vertexTexture = surface.locations.texture;
+	var matrixLocation = surface.locations.matrix;
+	var matrix = surface.getMatrix();
+
+	gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
+}
