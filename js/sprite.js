@@ -22,7 +22,7 @@ function Sprite(surface, width, height, url){
 
 Sprite.prototype.onLoad = function(){
 	var canvas = document.createElement('canvas');
-	var context = cavas.getContext('2d');
+	var context = canvas.getContext('2d');
 	var size = nextPowerOfTwo(Math.max(this.width, this.height));
 	canvas.width = size;
 	canvas.height = size;
@@ -85,7 +85,7 @@ Sprite.prototype.getFrameCount = function(){
 };
 
 Sprite.prototype.loadUrl = function(url){
-	this.image.src = url;
+	this.image.src = '../img/' + url;
 };
 
 Sprite.prototype.blit = function(x,y,frame){
@@ -128,9 +128,24 @@ Sprite.prototype.blit = function(x,y,frame){
 	gl.activeTexture(gl.TEXTURE0);
 	gl.bindTexture(gl.TEXTURE_2D, this.textures[frame]);
 
+
+	var n_matrix = new Float32Array(matrix.flatten());
 	//apply matrix transformations
-	gl.uniformMatrix3fv(matrixLocation, false, matrix);
+	console.log('matrix location ' + matrixLocation);
+	console.log('n_matrix '+n_matrix)
+
+	
+
+	gl.uniformMatrix3fv(matrixLocation, false, n_matrix);
 	gl.drawArrays(gl.TRIANGLES, 0, 6);
 	gl.bindBuffer(gl.ARRAY_BUFFER, null);
 	gl.bindTexture(gl.TEXTURE_2D, null);
+}
+
+function setMatrixUniforms() {
+	var pUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
+	gl.uniformMatrix4fv(pUniform, false, new Float32Array(perspectiveMatrix.flatten()));
+
+	var mvUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
+	gl.uniformMatrix4fv(mvUniform, false, new Float32Array(mvMatrixStack.mvMatrix.flatten()));
 }

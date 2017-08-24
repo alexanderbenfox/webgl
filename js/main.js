@@ -213,10 +213,19 @@ function setMatrixUniforms() {
 	gl.uniformMatrix4fv(mvUniform, false, new Float32Array(mvMatrixStack.mvMatrix.flatten()));
 }
 
-function multMatrix(m) {
-  mvMatrixStack.mvMatrix = mvMatrixStack.mvMatrix.x(m);
-}
+//function multMatrix(m) {
+ // mvMatrixStack.mvMatrix = mvMatrixStack.mvMatrix.x(m);
+//}
 
 function mvTranslate(v) {
   multMatrix(Matrix.Translation($V([v[0], v[1], v[2]])).ensure4x4());
+}
+
+
+function multMatrix(m1, m2){
+	return m1.x(m2);
+}
+
+function Translate(m, v){
+	return multMatrix(m1, Matrix.Translation($V([v[0], v[1], v[2]])).ensure4x4());
 }

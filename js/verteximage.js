@@ -1,6 +1,7 @@
+
 function MatrixStack(){
 	this.stack = [];
-	this.matrix = Matrix.I(4); 
+	this.matrix = Matrix.I(3); 
 	console.log('Matrix stack created.');
 }
 
@@ -71,14 +72,16 @@ DrawSurface.prototype.pop = function(){
 };
 
 DrawSurface.prototype.getMatrix = function(){
-	return this.matrixStack.matrix;
+	return this.matrixStack.stack[this.matrixStack.stack.length - 1];
 };
 
-DrawSurface.prototype.translate = function(v){
-	this.getMatrix().Translation(v);
+DrawSurface.prototype.translate = function(tx, ty){
+	var m = this.getMatrix();
+	return Translate(m, [tx,ty,0]);
 };
 
 DrawSurface.prototype.rotate = function(angle, v){
+	v = v || [0,0,0];
 	this.matrixStack.rotate(angle, v);
 };
 
@@ -131,4 +134,12 @@ function invert(out, a) {
   out[8] = (a11 * a00 - a01 * a10) * det
 
   return out
+}
+
+function multMatrix(m1, m2){
+	return m1.x(m2);
+}
+
+function Translate(m, v){
+	return multMatrix(m, Matrix.Translation($V([v[0], v[1], v[2]])).ensure4x4());
 }
