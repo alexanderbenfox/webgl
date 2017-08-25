@@ -95,11 +95,16 @@ Sprite.prototype.blit = function(x,y,frame){
 
 	var surface = this.surface;
 	var gl = this.surface.gl;
+	var program = this.surface.locations.program;
+
+	gl.useProgram(program);
 
 	var vertexPosition = surface.locations.position;
 	var vertexTexture = surface.locations.texture;
 	var matrixLocation = surface.locations.matrix;
 	var matrix = surface.getMatrix();
+
+	gl.enableVertexAttribArray(vertexTexture);
 
 	gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
 
@@ -131,8 +136,6 @@ Sprite.prototype.blit = function(x,y,frame){
 
 	var n_matrix = new Float32Array(matrix.flatten());
 	//apply matrix transformations
-	console.log('matrix location ' + matrixLocation);
-	console.log('n_matrix '+n_matrix)
 
 	
 
@@ -140,7 +143,7 @@ Sprite.prototype.blit = function(x,y,frame){
 	gl.drawArrays(gl.TRIANGLES, 0, 6);
 	gl.bindBuffer(gl.ARRAY_BUFFER, null);
 	gl.bindTexture(gl.TEXTURE_2D, null);
-}
+};
 
 function setMatrixUniforms() {
 	var pUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
@@ -148,24 +151,4 @@ function setMatrixUniforms() {
 
 	var mvUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
 	gl.uniformMatrix4fv(mvUniform, false, new Float32Array(mvMatrixStack.mvMatrix.flatten()));
-}
-
-function Line(surface, x1, x2, y1, y2, width){
-	this.surface = surface;
-	this.vertexBuffer = surface.gl.createBuffer();
-
-	this.points = [x1, x2, y1, y2];
-	this.width = width;
-}
-
-Line.prototype.blit = function(x, y){
-	var surface = this.surface;
-	var gl = this.surface.gl;
-
-	var vertexPosition = surface.locations.position;
-	var vertexTexture = surface.locations.texture;
-	var matrixLocation = surface.locations.matrix;
-	var matrix = surface.getMatrix();
-
-	gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
 }

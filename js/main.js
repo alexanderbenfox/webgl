@@ -2,6 +2,7 @@ var gl;
 var canvas;
 
 var shaderProgram;
+var shaderProgram2;
 var square;
 
 var perspectiveMatrix;

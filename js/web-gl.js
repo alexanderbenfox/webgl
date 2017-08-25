@@ -1,4 +1,4 @@
-function initGL(gl, width, height){
+function initGL(gl, width, height, line){
 	gl.clearColor(0.0,0.0,0.0,1.0);
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	gl.depthFunc(gl.LEQUAL);
@@ -8,14 +8,19 @@ function initGL(gl, width, height){
 	gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
 	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
+	if(line)
+		return initShaderNoTexture(gl);
 	return initShaders(gl);
 }
 
 function initShaders(gl){
 	var fragmentShader = getShader(gl, 'shader-fs');
 	var vertexShader = getShader(gl, 'shader-vs');
+	
 
 	shaderProgram = gl.createProgram();
+	
+	
 	gl.attachShader(shaderProgram, vertexShader);
 	gl.attachShader(shaderProgram, fragmentShader);
 	gl.linkProgram(shaderProgram);
@@ -34,7 +39,31 @@ function initShaders(gl){
 
 	console.log("Shaders initialized.")
 
-	return { position:vertexPosition, texture:textureCoordinate, resolution:resolutionLocation, matrix:transformationMatrix };
+	return { position:vertexPosition, texture:textureCoordinate, resolution:resolutionLocation, matrix:transformationMatrix, program:shaderProgram };
+}
+
+function initShaderNoTexture(gl){
+	var fragmentShader = getShader(gl, 'shader-fs-not');
+	var vertexShader = getShader(gl, 'shader-vs-not');
+
+	shaderProgram2 = gl.createProgram();
+
+	gl.attachShader(shaderProgram2, vertexShader);
+	gl.attachShader(shaderProgram2, fragmentShader);
+	gl.linkProgram(shaderProgram2);
+
+	if(!gl.getProgramParameter(shaderProgram2, gl.LINK_STATUS)) {alert('Unable to initialize shader program: ' + gl.getProgramInfoLog(shaderProgram2));}
+	gl.useProgram(shaderProgram2);
+
+	var vertexPosition = gl.getAttribLocation(shaderProgram2, 'aVertexPosition');
+	gl.enableVertexAttribArray(vertexPosition);
+
+	var vertexColor = gl.getAttribLocation(shaderProgram2, 'aVertexColor');
+	gl.enableVertexAttribArray(vertexColor);
+
+	var resolutionLocation = gl.getUniformLocation(shaderProgram2, 'uResolution');
+	var transformationMatrix = gl.getUniformLocation(shaderProgram2, 'uMatrix');
+	return { position:vertexPosition, texture:vertexColor, resolution:resolutionLocation, matrix:transformationMatrix, program:shaderProgram2 };
 }
 
 function getShader(gl, id, type){

@@ -32,14 +32,15 @@ MatrixStack.prototype.rotate = function(angle, v){
 };
 
 
-function DrawSurface(canvas){
+function DrawSurface(canvas, line){
 	this.canvas = canvas;
 	this.matrixStack = new MatrixStack();
 	this.width = 0;
 	this.height = 0;
 
 	this.gl = getGLContext(canvas, {alpha: false, premultipliedAlpha: false});
-	this.locations = initGL(this.gl, this.width, this.height);
+	this.locations = initGL(this.gl, this.width, this.height, line);
+	this.program = this.locations.program;
 	this.resize(this.width, this.height);
 }
 
@@ -56,6 +57,9 @@ DrawSurface.prototype.resize = function(width, height){
 	this.density = density;
 
 	this.gl.viewport(0,0,width,height);
+
+	console.log((this.program));
+	this.gl.useProgram(this.program);
 	this.gl.uniform2f(this.locations.resolution, width, height);
 };
 
