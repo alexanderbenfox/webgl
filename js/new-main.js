@@ -14,7 +14,65 @@ var lastUpdateTime;
 
 var inGame;
 
+var editorObjects = [];
 
+var editor = new EditorControl();
+var mouseCoords = null;
+var mouseOffset = null;
+
+document.onmousemove = function(ev){
+	ev = ev || window.event;
+	var mousePosition = getMouseCoords(ev);
+	if(mouseOffset != null){
+		mousePosition.x -= mouseOffset.x;
+		mousePosition.y -= mouseOffset.y;
+	}
+	mouseCoords = mousePosition;
+	return mousePosition;
+};
+document.onmouseup = function(ev){
+	editor.draggingObject = null;
+};
+
+document.onmousedown = function(ev){
+	var mousePosition = getMouseCoords(ev);
+	if(mouseOffset != null){
+		mousePosition.x -= mouseOffset.x;
+		mousePosition.y -= mouseOffset.y;
+	}
+	editor.checkForClick(editorObjects, mousePosition.x, mousePosition.y);
+};
+
+
+
+/*ScriptEventEnum = {
+	OnStart : 0,
+	OnPlayerTouch : 1,
+	OnDestroy : 2
+};
+
+function executeJSInContext(script, context){
+	return function() {return eval(script);}.call(context);
+}
+
+function ScriptableEvent(){
+	this.eventList = [];
+};
+
+ScriptableEvent.prototype.setNewScript = function(s, t){
+	var event = {script : s, type : t};
+	this.eventList.push(event);
+};
+
+ScriptableEvent.prototype.execute = function(eventType, object){
+	if(inGame){
+		for (var i = 0; i < this.eventList.length; i++) {
+			if(this.eventList[i].type == eventType){
+				executeJSInContext(eventList[i].script, object);
+			}
+		}
+	}
+};*/
 
 function Line(surface, x1, x2, y1, y2, width){
 	this.surface = surface;
@@ -128,68 +186,14 @@ Square.prototype.blit = function(){
 
 
 
-/*ScriptEventEnum = {
-	OnStart : 0,
-	OnPlayerTouch : 1,
-	OnDestroy : 2
-};
-
-function executeJSInContext(script, context){
-	return function() {return eval(script);}.call(context);
-}
-
-function ScriptableEvent(){
-	this.eventList = [];
-};
-
-ScriptableEvent.prototype.setNewScript = function(s, t){
-	var event = {script : s, type : t};
-	this.eventList.push(event);
-};
-
-ScriptableEvent.prototype.execute = function(eventType, object){
-	if(inGame){
-		for (var i = 0; i < this.eventList.length; i++) {
-			if(this.eventList[i].type == eventType){
-				executeJSInContext(eventList[i].script, object);
-			}
-		}
-	}
-};*/
-
-function GameObject(img, width, height, surf, startX, startY){
-	if(img)
-		this.sprite = new Sprite(surf, width, height, img);
-	else
-		this.sprite = null;
-
-	this.x = startX;
-	this.y = startY;
-
-	this.dx = 0;
-	this.dy = 0;
-}
-
-GameObject.prototype.move = function(delta_x, delta_y) {
-	// load the sprite stuff
-	this.dx = delta_x;
-	this.dy = delta_y;
-};
-
-GameObject.prototype.update = function(dt){
-	this.x += (this.dx * dt);
-	this.y += (this.dy * dt);
-};
-
-GameObject.prototype.draw = function(){
-	if(this.sprite)
-		this.sprite.blit(this.x - camera.x, this.y - camera.y);
-};
-
 
 function new_start(){
 	canvas = document.getElementById('glCanvas');
 	console.log('CANVAS ' + canvas);
+
+	var offset = {x:canvas.getBoundingClientRect().left, y:canvas.getBoundingClientRect().top};
+
+	mouseOffset = offset;
 
 	surface_sprites = new DrawSurface(canvas);
 	surface_lines = new DrawSurface(canvas, true);
@@ -198,7 +202,8 @@ function new_start(){
 	obj_2 = new GameObject('box.png', 256, 256, surface_sprites, 256, 0);
 	camera = new GameObject(null, null, null, null, 0,0);
 
-
+	var editorBox = new EditorObject('../img/tile.png', 32, 32, surface_sprites, 256, 256);
+	editorObjects.push(editorBox);
 
 	lines = [];
 	var screen_width = surface_lines.width;
@@ -241,15 +246,25 @@ function update(dt){
 	for (var i = 0; i < gameObjects.length; i++) {
 		gameObjects[i].update(normalizedUpdateValue);
 	}
+
+	for(var i = 0; i < editorObjects.length; i++){
+		editorObjects[i].update();
+	}
+
+	editor.update(mouseCoords);
 }
 
 function draw(){
+	square.blit();
 	obj_1.draw();
 	obj_2.draw();
 	for(var i = 0; i < lines.length; i++){
 		lines[i].blit();
 	}
-	square.blit();
+
+	for(var i = 0; i < editorObjects.length; i++){
+		editorObjects[i].draw();
+	}
 }
 
 function drawScene(){
